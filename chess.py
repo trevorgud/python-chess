@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import Enum
+import math
 import pygame
 
 
@@ -47,6 +48,7 @@ class ChessPiece():
 
 
 class ChessBoard():
+    # TODO: Rework these to fit within less than 80 characters per line.
     WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE, pygame.image.load("images/pieces/default-white/pawn.png"))
     WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE, pygame.image.load("images/pieces/default-white/knight.png"))
     WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE, pygame.image.load("images/pieces/default-white/bishop.png"))
@@ -99,7 +101,7 @@ class ChessBoard():
         return boardStr
 
     def boardToPygameIndex(self, xpos, ypos):
-        return (20 + (xpos * 50), 20 + (ypos * 50))
+        return (20 + (ypos * 50), 20 + (xpos * 50))
 
     def pygameBlit(self, screen):
         rowIndex = 0
@@ -107,8 +109,8 @@ class ChessBoard():
             columnIndex = 0
             for piece in row:
                 if(piece is not None):
-                    (xoffset, yoffset) = self.boardToPygameIndex(rowIndex, columnIndex)
-                    pieceRect = piece.image.get_rect().move(xoffset, yoffset)
+                    (dx, dy) = self.boardToPygameIndex(rowIndex, columnIndex)
+                    pieceRect = piece.image.get_rect().move(dx, dy)
                     screen.blit(piece.image, pieceRect)
                 columnIndex += 1
             rowIndex += 1
@@ -135,6 +137,12 @@ def inputToIndex(userInput):
         return None
 
 
+def pygameToBoardIndex(screenPos):
+    xnew = math.floor((screenPos[1] - 20) / 50)
+    ynew = math.floor((screenPos[0] - 20) / 50)
+    return (xnew, ynew)
+
+
 chessBoard = ChessBoard()
 
 pygame.init()
@@ -143,11 +151,25 @@ screen = pygame.display.set_mode((440, 440))
 board = pygame.image.load("images/boards/black-white.png")
 boardRect = board.get_rect()
 
+currentMouseSelect = None
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONUP:
+            # TODO: Don't register clicks that are out of bounds.
+            if currentMouseSelect is None:
+                currentMouseSelect = pygame.mouse.get_pos()
+                print(currentMouseSelect)
+            else:
+                newMouseSelect = pygame.mouse.get_pos()
+                startBoardIndex = pygameToBoardIndex(currentMouseSelect)
+                endBoardIndex = pygameToBoardIndex(newMouseSelect)
+                print(startBoardIndex, endBoardIndex)
+                chessBoard.movePiece(startBoardIndex, endBoardIndex)
+                currentMouseSelect = None
+
         screen.blit(board, boardRect)
         chessBoard.pygameBlit(screen)
         pygame.display.flip()
