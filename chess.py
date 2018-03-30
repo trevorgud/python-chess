@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import Enum
+import pygame
 
 
 class Color(Enum):
@@ -18,9 +19,10 @@ class Piece(Enum):
 
 
 class ChessPiece():
-    def __init__(self, pieceType, color):
+    def __init__(self, pieceType, color, image):
         self.pieceType = pieceType
         self.color = color
+        self.image = image
 
     def __str__(self):
         if(self.color is Color.WHITE):
@@ -45,18 +47,18 @@ class ChessPiece():
 
 
 class ChessBoard():
-    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE)
-    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE)
-    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE)
-    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE)
-    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE)
-    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE)
-    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK)
-    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK)
-    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK)
-    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK)
-    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK)
-    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK)
+    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE, pygame.image.load("images/pieces/default-white/pawn.png"))
+    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE, pygame.image.load("images/pieces/default-white/knight.png"))
+    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE, pygame.image.load("images/pieces/default-white/bishop.png"))
+    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE, pygame.image.load("images/pieces/default-white/castle.png"))
+    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE, pygame.image.load("images/pieces/default-white/queen.png"))
+    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE, pygame.image.load("images/pieces/default-white/king.png"))
+    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK, pygame.image.load("images/pieces/default-black/pawn.png"))
+    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK, pygame.image.load("images/pieces/default-black/knight.png"))
+    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK, pygame.image.load("images/pieces/default-black/bishop.png"))
+    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK, pygame.image.load("images/pieces/default-black/castle.png"))
+    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK, pygame.image.load("images/pieces/default-black/queen.png"))
+    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK, pygame.image.load("images/pieces/default-black/king.png"))
 
     _chessBoard = [
         [BLACK_CASTLE, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN,
@@ -96,6 +98,21 @@ class ChessBoard():
         boardStr += "  a  b  c  d  e  f  g  h\n"
         return boardStr
 
+    def boardToPygameIndex(self, xpos, ypos):
+        return (20 + (xpos * 50), 20 + (ypos * 50))
+
+    def pygameBlit(self, screen):
+        rowIndex = 0
+        for row in self._chessBoard:
+            columnIndex = 0
+            for piece in row:
+                if(piece is not None):
+                    (xoffset, yoffset) = self.boardToPygameIndex(rowIndex, columnIndex)
+                    pieceRect = piece.image.get_rect().move(xoffset, yoffset)
+                    screen.blit(piece.image, pieceRect)
+                columnIndex += 1
+            rowIndex += 1
+
 
 def inputToIndex(userInput):
     tokens = userInput.split(" ")
@@ -111,7 +128,7 @@ def inputToIndex(userInput):
         except ValueError:
             return None
         if(firstCol is None or secondCol is None or 
-        	firstRow < 1 or firstRow > 8 or secondRow < 1 or secondRow > 8):
+            firstRow < 1 or firstRow > 8 or secondRow < 1 or secondRow > 8):
             return None
         return ((8 - firstRow, firstCol), (8 - secondRow, secondCol))
     else:
@@ -120,13 +137,29 @@ def inputToIndex(userInput):
 
 chessBoard = ChessBoard()
 
-while(True):
-    print(chessBoard)
-    move = input("move: ")
-    if(move == "exit" or move == "quit" or move == "q"):
-    	exit()
-    moveIndex = inputToIndex(move)
-    if(moveIndex is not None):
-        chessBoard.movePiece(moveIndex[0], moveIndex[1])
-    else:
-        print("Invalid input")
+pygame.init()
+pygame.display.set_caption("python-chess")
+screen = pygame.display.set_mode((440, 440))
+board = pygame.image.load("images/boards/black-white.png")
+boardRect = board.get_rect()
+
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        screen.blit(board, boardRect)
+        chessBoard.pygameBlit(screen)
+        pygame.display.flip()
+
+# TODO: Allow selection between command line and GUI chess modes.
+# while(True):
+#     print(chessBoard)
+#     move = input("move: ")
+#     if(move == "exit" or move == "quit" or move == "q"):
+#       exit()
+#     moveIndex = inputToIndex(move)
+#     if(moveIndex is not None):
+#         chessBoard.movePiece(moveIndex[0], moveIndex[1])
+#     else:
+#         print("Invalid input")
