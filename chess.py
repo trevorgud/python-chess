@@ -2,6 +2,7 @@
 
 from enum import Enum
 import math
+import numpy
 import pygame
 
 
@@ -47,6 +48,179 @@ class ChessPiece():
         return colorStr + pieceStr
 
 
+# TODO: Detect check and checkmate conditions within the rules.
+class ChessRules():
+    def __init__(self, chessBoard):
+        self._chessBoard = chessBoard
+        self.turn = Color.WHITE
+        self.boardWidth = 8
+        self.boardHeight = 8
+
+    def _switchTurn(self):
+        if(self.turn == Color.WHITE):
+            self.turn = Color.BLACK
+        else:
+            self.turn = Color.WHITE
+
+    def movePiece(self, startPos, endPos):
+        piece = self._chessBoard[startPos[0]][startPos[1]]
+        self._chessBoard[startPos[0]][startPos[1]] = None
+        self._chessBoard[endPos[0]][endPos[1]] = piece
+        self._switchTurn()
+
+    def validMove(self, startPos, endPos):
+        if(startPos[0] >= self.boardHeight or startPos[0] < 0 or
+            startPos[1] >= self.boardWidth or startPos[1] < 0 or
+            endPos[0] >= self.boardHeight or endPos[0] < 0 or
+            endPos[1] >= self.boardWidth or endPos[1] < 0):
+            return False
+
+        startPiece = self._chessBoard[startPos[0]][startPos[1]]
+        endPiece = self._chessBoard[endPos[0]][endPos[1]]
+        if(startPos == endPos or
+            startPiece == None or
+            startPiece.color != self.turn or
+            (endPiece != None and startPiece.color == endPiece.color)):
+            return False
+
+        if(startPiece.pieceType == Piece.PAWN):
+            return self._validPawnMove(startPos, endPos)
+        elif(startPiece.pieceType == Piece.KNIGHT):
+            return self._validKnightMove(startPos, endPos)
+        elif(startPiece.pieceType == Piece.BISHOP):
+            return self._validBishopMove(startPos, endPos)
+        elif(startPiece.pieceType == Piece.CASTLE):
+            return self._validCastleMove(startPos, endPos)
+        elif(startPiece.pieceType == Piece.QUEEN):
+            return self._validQueenMove(startPos, endPos)
+        elif(startPiece.pieceType == Piece.KING):
+            return self._validKingMove(startPos, endPos)
+        else:
+            return False
+
+    def _validPawnMove(self, startPos, endPos):
+        dx = endPos[0] - startPos[0]
+        dy = endPos[1] - startPos[1]
+        endPiece = self._chessBoard[endPos[0]][endPos[1]]
+        startPiece = self._chessBoard[startPos[0]][startPos[1]]
+        # Enforce the directionality of piece colors.
+        if((startPiece.color == Color.BLACK and dx < 1) or
+            (startPiece.color == Color.WHITE and dx > -1)):
+            return False
+
+        dx = abs(dx)
+        # Normal one space move.
+        if(dx == 1 and dy == 0 and endPiece == None):
+            return True
+        # Attack move.
+        elif(dx == 1 and
+            abs(dy) == 1 and
+            endPiece != None and
+            endPiece.color != startPiece.color):
+            return True
+
+        # TODO: Implement two space forward moves if first move for this pawn.
+
+        return False
+
+    def _validKnightMove(self, startPos, endPos):
+        dx = endPos[0] - startPos[0]
+        dy = endPos[1] - startPos[1]
+        return ((abs(dx) == 1 and abs(dy) == 2) or
+            (abs(dy) == 1 and abs(dx) == 2))
+
+    def _validBishopMove(self, startPos, endPos):
+        drow = endPos[0] - startPos[0]
+        dcol = endPos[1] - startPos[1]
+
+        if(not self._validBishopMovement(drow, dcol)):
+            return False
+
+        rowstep = numpy.sign(drow)
+        colstep = numpy.sign(dcol)
+        rowstart = startPos[0] + rowstep
+        colstart = startPos[1] + colstep
+        rowend = endPos[0]
+        colend = endPos[1]
+
+        row, col = rowstart, colstart
+        while(row != rowend or col != colend):
+            if(self._chessBoard[row][col] != None):
+                return False
+            row += rowstep
+            col += colstep
+
+        # No rule violations found. Move is valid.
+        return True
+
+    def _validCastleMove(self, startPos, endPos):
+        drow = endPos[0] - startPos[0]
+        dcol = endPos[1] - startPos[1]
+
+        if(not self._validCastleMovement(drow, dcol)):
+            return False
+
+        rowstep = numpy.sign(drow)
+        colstep = numpy.sign(dcol)
+        rowstart = startPos[0] + rowstep
+        colstart = startPos[1] + colstep
+        rowend = endPos[0]
+        colend = endPos[1]
+
+        row, col = rowstart, colstart
+        while(row != rowend or col != colend):
+            if(self._chessBoard[row][col] != None):
+                return False
+            row += rowstep
+            col += colstep
+
+        # No rule violations found. Move is valid.
+        return True
+
+    def _validQueenMove(self, startPos, endPos):
+        drow = endPos[0] - startPos[0]
+        dcol = endPos[1] - startPos[1]
+
+        if(not self._validQueenMovement(drow, dcol)):
+            return False
+
+        rowstep = numpy.sign(drow)
+        colstep = numpy.sign(dcol)
+        rowstart = startPos[0] + rowstep
+        colstart = startPos[1] + colstep
+        rowend = endPos[0]
+        colend = endPos[1]
+
+        row, col = rowstart, colstart
+        while(row != rowend or col != colend):
+            if(self._chessBoard[row][col] != None):
+                return False
+            row += rowstep
+            col += colstep
+
+        # No rule violations found. Move is valid.
+        return True
+
+    def _validKingMove(self, startPos, endPos):
+        dx = endPos[0] - startPos[0]
+        dy = endPos[1] - startPos[1]
+        if(abs(dx) > 1 or abs(dy) > 1):
+            return False
+
+        # TODO: Allow the special castling move.
+
+        return True
+
+    def _validCastleMovement(self, dx, dy):
+        return dx == 0 or dy == 0
+
+    def _validBishopMovement(self, dx, dy):
+        return abs(dx) == abs(dy)
+
+    def _validQueenMovement(self, dx, dy):
+        return (self._validBishopMovement(dx, dy) or
+            self._validCastleMovement(dx, dy))
+
 class ChessBoard():
     # TODO: Rework these to fit within less than 80 characters per line.
     WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE, pygame.image.load("images/pieces/default-white/pawn.png"))
@@ -71,18 +245,19 @@ class ChessBoard():
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None],
         [None, None, None, None, None, None, None, None],
-        [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, 
+        [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN,
             WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN],
         [WHITE_CASTLE, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN,
             WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_CASTLE],
     ]
 
-    def movePiece(self, firstPos, secondPos):
-        piece = self._chessBoard[firstPos[0]][firstPos[1]]
-        # TODO: Check if the move is valid.
-        # Not necessarily within this function.
-        self._chessBoard[firstPos[0]][firstPos[1]] = None
-        self._chessBoard[secondPos[0]][secondPos[1]] = piece
+    _rules = ChessRules(_chessBoard)
+
+    def validMove(self, startPos, endPos):
+        return self._rules.validMove(startPos, endPos)
+
+    def movePiece(self, startPos, endPos):
+        self._rules.movePiece(startPos, endPos)
 
     def __str__(self):
         boardStr = ""
@@ -129,7 +304,7 @@ def inputToIndex(userInput):
             secondRow = int(secondPos[1])
         except ValueError:
             return None
-        if(firstCol is None or secondCol is None or 
+        if(firstCol is None or secondCol is None or
             firstRow < 1 or firstRow > 8 or secondRow < 1 or secondRow > 8):
             return None
         return ((8 - firstRow, firstCol), (8 - secondRow, secondCol))
@@ -167,7 +342,8 @@ while running:
                 startBoardIndex = pygameToBoardIndex(currentMouseSelect)
                 endBoardIndex = pygameToBoardIndex(newMouseSelect)
                 print(startBoardIndex, endBoardIndex)
-                chessBoard.movePiece(startBoardIndex, endBoardIndex)
+                if(chessBoard.validMove(startBoardIndex, endBoardIndex)):
+                    chessBoard.movePiece(startBoardIndex, endBoardIndex)
                 currentMouseSelect = None
 
         screen.blit(board, boardRect)
