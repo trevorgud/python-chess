@@ -132,6 +132,7 @@ class ChessRules():
 
     def _isCheckAfterMove(self, color, startPos, endPos):
         # Try moving the pieces to see if will be in check.
+        tempBoard = self._boardCopy()
         endPiece = self._state.chessBoard[endPos[0]][endPos[1]]
         startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
         self._state.chessBoard[endPos[0]][endPos[1]] = startPiece
@@ -140,8 +141,7 @@ class ChessRules():
         isCheckAfterMove = self.isCheck(color)
 
         # Restore the original state.
-        self._state.chessBoard[startPos[0]][startPos[1]] = startPiece
-        self._state.chessBoard[endPos[0]][endPos[1]] = endPiece
+        self._loadBoard(tempBoard)
         self._updateKingPos(startPiece, startPos)
 
         return isCheckAfterMove
@@ -289,6 +289,20 @@ class ChessRules():
     def isCheckmate(self, color):
         # TODO: Detect checkmate conditions.
         return False
+
+    def _boardCopy(self):
+        newBoard = []
+        for row in self._state.chessBoard:
+            newRow = []
+            for col in row:
+                newRow.append(col)
+            newBoard.append(newRow)
+        return newBoard
+
+    def _loadBoard(self, board):
+        for row in range(self._boardHeight):
+            for col in range(self._boardWidth):
+                self._state.chessBoard[row][col] = board[row][col]
 
 
 class ChessBoard():
