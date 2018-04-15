@@ -46,6 +46,22 @@ class ChessPiece():
 
         return colorStr + pieceStr
 
+
+class PieceSet():
+    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE)
+    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE)
+    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE)
+    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE)
+    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE)
+    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE)
+    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK)
+    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK)
+    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK)
+    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK)
+    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK)
+    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK)
+
+
 class ChessState():
     def __init__(self, chessBoard):
         self.chessBoard = chessBoard
@@ -58,11 +74,13 @@ class ChessState():
         self.blackCastle2Moved = False
         self.kingPos = {Color.WHITE: (7, 4), Color.BLACK: (0, 4)}
 
+
 class ChessRules():
-    def __init__(self, chessBoard):
+    def __init__(self, chessBoard, pieces):
         self._boardWidth = 8
         self._boardHeight = 8
         self._state = ChessState(chessBoard)
+        self._pieces = pieces
 
     def _switchTurn(self):
         if(self._state.turn == Color.WHITE):
@@ -90,6 +108,23 @@ class ChessRules():
         if(piece.pieceType == Piece.KING):
             self._state.kingPos[piece.color] = endPos
 
+    def _promotePawnColored(self, color, row):
+        for col in range(self._boardWidth):
+            piece = self._state.chessBoard[row][col]
+            if(piece != None and
+                piece.color == color and
+                piece.pieceType == Piece.PAWN):
+                if(color == Color.WHITE):
+                    self._state.chessBoard[row][col] = self._pieces.WHITE_QUEEN
+                else:
+                    self._state.chessBoard[row][col] = self._pieces.BLACK_QUEEN
+
+    def _promotePawnIfEighthRank(self):
+        whiteUpgradeRow = 0
+        blackUpgradeRow = self._boardHeight - 1
+        self._promotePawnColored(Color.WHITE, whiteUpgradeRow)
+        self._promotePawnColored(Color.BLACK, blackUpgradeRow)
+
     def movePiece(self, startPos, endPos):
         piece = self._state.chessBoard[startPos[0]][startPos[1]]
         if(self._isCheckAfterMove(piece.color, startPos, endPos)):
@@ -98,6 +133,7 @@ class ChessRules():
         self._state.chessBoard[endPos[0]][endPos[1]] = piece
         self._updateKingPos(piece, endPos)
         self._setPiecesMoved(piece, startPos)
+        self._promotePawnIfEighthRank()
         self._switchTurn()
 
     def validMove(self, startPos, endPos):
@@ -306,53 +342,44 @@ class ChessRules():
 
 
 class ChessBoard():
-    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE)
-    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE)
-    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE)
-    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE)
-    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE)
-    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE)
-    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK)
-    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK)
-    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK)
-    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK)
-    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK)
-    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK)
+    _pieces = PieceSet()
+    _chessBoard = [
+        [_pieces.BLACK_CASTLE, _pieces.BLACK_KNIGHT, _pieces.BLACK_BISHOP,
+            _pieces.BLACK_QUEEN, _pieces.BLACK_KING, _pieces.BLACK_BISHOP,
+            _pieces.BLACK_KNIGHT, _pieces.BLACK_CASTLE],
+        [_pieces.BLACK_PAWN, _pieces.BLACK_PAWN, _pieces.BLACK_PAWN,
+            _pieces.BLACK_PAWN, _pieces.BLACK_PAWN, _pieces.BLACK_PAWN,
+            _pieces.BLACK_PAWN, _pieces.BLACK_PAWN],
+        [None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None],
+        [None, None, None, None, None, None, None, None],
+        [_pieces.WHITE_PAWN, _pieces.WHITE_PAWN, _pieces.WHITE_PAWN,
+            _pieces.WHITE_PAWN, _pieces.WHITE_PAWN, _pieces.WHITE_PAWN,
+            _pieces.WHITE_PAWN, _pieces.WHITE_PAWN],
+        [_pieces.WHITE_CASTLE, _pieces.WHITE_KNIGHT, _pieces.WHITE_BISHOP,
+            _pieces.WHITE_QUEEN, _pieces.WHITE_KING, _pieces.WHITE_BISHOP,
+            _pieces.WHITE_KNIGHT, _pieces.WHITE_CASTLE],
+    ]
+    _rules = ChessRules(_chessBoard, _pieces)
 
     _pieceDir = "images/pieces"
     _whiteDir = _pieceDir + "/default-white"
     _blackDir = _pieceDir + "/default-black"
     images = {
-        WHITE_PAWN: pygame.image.load(_whiteDir + "/pawn.png"),
-        WHITE_KNIGHT: pygame.image.load(_whiteDir + "/knight.png"),
-        WHITE_BISHOP: pygame.image.load(_whiteDir + "/bishop.png"),
-        WHITE_CASTLE: pygame.image.load(_whiteDir + "/castle.png"),
-        WHITE_QUEEN: pygame.image.load(_whiteDir + "/queen.png"),
-        WHITE_KING: pygame.image.load(_whiteDir + "/king.png"),
-        BLACK_PAWN: pygame.image.load(_blackDir + "/pawn.png"),
-        BLACK_KNIGHT: pygame.image.load(_blackDir + "/knight.png"),
-        BLACK_BISHOP: pygame.image.load(_blackDir + "/bishop.png"),
-        BLACK_CASTLE: pygame.image.load(_blackDir + "/castle.png"),
-        BLACK_QUEEN: pygame.image.load(_blackDir + "/queen.png"),
-        BLACK_KING: pygame.image.load(_blackDir + "/king.png")
+        _pieces.WHITE_PAWN: pygame.image.load(_whiteDir + "/pawn.png"),
+        _pieces.WHITE_KNIGHT: pygame.image.load(_whiteDir + "/knight.png"),
+        _pieces.WHITE_BISHOP: pygame.image.load(_whiteDir + "/bishop.png"),
+        _pieces.WHITE_CASTLE: pygame.image.load(_whiteDir + "/castle.png"),
+        _pieces.WHITE_QUEEN: pygame.image.load(_whiteDir + "/queen.png"),
+        _pieces.WHITE_KING: pygame.image.load(_whiteDir + "/king.png"),
+        _pieces.BLACK_PAWN: pygame.image.load(_blackDir + "/pawn.png"),
+        _pieces.BLACK_KNIGHT: pygame.image.load(_blackDir + "/knight.png"),
+        _pieces.BLACK_BISHOP: pygame.image.load(_blackDir + "/bishop.png"),
+        _pieces.BLACK_CASTLE: pygame.image.load(_blackDir + "/castle.png"),
+        _pieces.BLACK_QUEEN: pygame.image.load(_blackDir + "/queen.png"),
+        _pieces.BLACK_KING: pygame.image.load(_blackDir + "/king.png")
     }
-
-    _chessBoard = [
-        [BLACK_CASTLE, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN,
-            BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_CASTLE],
-        [BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN,
-            BLACK_PAWN, BLACK_PAWN, BLACK_PAWN, BLACK_PAWN],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [None, None, None, None, None, None, None, None],
-        [WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN,
-            WHITE_PAWN, WHITE_PAWN, WHITE_PAWN, WHITE_PAWN],
-        [WHITE_CASTLE, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN,
-            WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_CASTLE],
-    ]
-
-    _rules = ChessRules(_chessBoard)
 
     def validMove(self, startPos, endPos):
         return self._rules.validMove(startPos, endPos)
