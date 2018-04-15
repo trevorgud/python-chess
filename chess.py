@@ -21,10 +21,9 @@ class Piece(Enum):
 
 
 class ChessPiece():
-    def __init__(self, pieceType, color, image):
+    def __init__(self, pieceType, color):
         self.pieceType = pieceType
         self.color = color
-        self.image = image
 
     def __str__(self):
         if(self.color is Color.WHITE):
@@ -293,19 +292,36 @@ class ChessRules():
 
 
 class ChessBoard():
-    # TODO: Rework these to fit within less than 80 characters per line.
-    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE, pygame.image.load("images/pieces/default-white/pawn.png"))
-    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE, pygame.image.load("images/pieces/default-white/knight.png"))
-    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE, pygame.image.load("images/pieces/default-white/bishop.png"))
-    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE, pygame.image.load("images/pieces/default-white/castle.png"))
-    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE, pygame.image.load("images/pieces/default-white/queen.png"))
-    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE, pygame.image.load("images/pieces/default-white/king.png"))
-    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK, pygame.image.load("images/pieces/default-black/pawn.png"))
-    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK, pygame.image.load("images/pieces/default-black/knight.png"))
-    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK, pygame.image.load("images/pieces/default-black/bishop.png"))
-    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK, pygame.image.load("images/pieces/default-black/castle.png"))
-    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK, pygame.image.load("images/pieces/default-black/queen.png"))
-    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK, pygame.image.load("images/pieces/default-black/king.png"))
+    WHITE_PAWN = ChessPiece(Piece.PAWN, Color.WHITE)
+    WHITE_KNIGHT = ChessPiece(Piece.KNIGHT, Color.WHITE)
+    WHITE_BISHOP = ChessPiece(Piece.BISHOP, Color.WHITE)
+    WHITE_CASTLE = ChessPiece(Piece.CASTLE, Color.WHITE)
+    WHITE_QUEEN = ChessPiece(Piece.QUEEN, Color.WHITE)
+    WHITE_KING = ChessPiece(Piece.KING, Color.WHITE)
+    BLACK_PAWN = ChessPiece(Piece.PAWN, Color.BLACK)
+    BLACK_KNIGHT = ChessPiece(Piece.KNIGHT, Color.BLACK)
+    BLACK_BISHOP = ChessPiece(Piece.BISHOP, Color.BLACK)
+    BLACK_CASTLE = ChessPiece(Piece.CASTLE, Color.BLACK)
+    BLACK_QUEEN = ChessPiece(Piece.QUEEN, Color.BLACK)
+    BLACK_KING = ChessPiece(Piece.KING, Color.BLACK)
+
+    _pieceDir = "images/pieces"
+    _whiteDir = _pieceDir + "/default-white"
+    _blackDir = _pieceDir + "/default-black"
+    images = {
+        WHITE_PAWN: pygame.image.load(_whiteDir + "/pawn.png"),
+        WHITE_KNIGHT: pygame.image.load(_whiteDir + "/knight.png"),
+        WHITE_BISHOP: pygame.image.load(_whiteDir + "/bishop.png"),
+        WHITE_CASTLE: pygame.image.load(_whiteDir + "/castle.png"),
+        WHITE_QUEEN: pygame.image.load(_whiteDir + "/queen.png"),
+        WHITE_KING: pygame.image.load(_whiteDir + "/king.png"),
+        BLACK_PAWN: pygame.image.load(_blackDir + "/pawn.png"),
+        BLACK_KNIGHT: pygame.image.load(_blackDir + "/knight.png"),
+        BLACK_BISHOP: pygame.image.load(_blackDir + "/bishop.png"),
+        BLACK_CASTLE: pygame.image.load(_blackDir + "/castle.png"),
+        BLACK_QUEEN: pygame.image.load(_blackDir + "/queen.png"),
+        BLACK_KING: pygame.image.load(_blackDir + "/king.png")
+    }
 
     _chessBoard = [
         [BLACK_CASTLE, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN,
@@ -356,8 +372,9 @@ class ChessBoard():
             for piece in row:
                 if(piece is not None):
                     (dx, dy) = self.boardToPygameIndex(rowIndex, columnIndex)
-                    pieceRect = piece.image.get_rect().move(dx, dy)
-                    screen.blit(piece.image, pieceRect)
+                    pieceImage = self.images[piece]
+                    pieceRect = pieceImage.get_rect().move(dx, dy)
+                    screen.blit(pieceImage, pieceRect)
                 columnIndex += 1
             rowIndex += 1
 
