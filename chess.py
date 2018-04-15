@@ -66,13 +66,9 @@ class ChessState():
     def __init__(self, chessBoard):
         self.chessBoard = chessBoard
         self.turn = Color.WHITE
-        self.whiteKingMoved = False
-        self.whiteCastle1Moved = False
-        self.whiteCastle2Moved = False
-        self.blackKingMoved = False
-        self.blackCastle1Moved = False
-        self.blackCastle2Moved = False
-        self.kingPos = {Color.WHITE: (7, 4), Color.BLACK: (0, 4)}
+        self.kingMoved = {Color.WHITE: False, Color.BLACK: False}
+        self.castle1Moved = {Color.WHITE: False, Color.BLACK: False}
+        self.castle2Moved = {Color.WHITE: False, Color.BLACK: False}
 
 
 class ChessRules():
@@ -89,24 +85,22 @@ class ChessRules():
             self._state.turn = Color.WHITE
 
     def _setPiecesMoved(self, piece, startPos):
-        if(piece.pieceType == Piece.KING and piece.color == Color.WHITE):
-            self._state.whiteKingMoved = True
-        elif(piece.pieceType == Piece.CASTLE and piece.color == Color.WHITE):
-            if(startPos == (7, 0)):
-                self._state.whiteCastle1Moved = True
-            elif(startPos == (7, 7)):
-                self._state.whiteCastle2Moved = True
-        elif(piece.pieceType == Piece.KING and piece.color == Color.BLACK):
-            self._state.blackKingMoved = True
-        elif(piece.pieceType == Piece.CASTLE and piece.color == Color.BLACK):
-            if(startPos == (0, 0)):
-                self._state.blackCastle1Moved = True
-            elif(startPos == (0, 7)):
-                self._state.blackCastle2Moved = True
-
-    def _updateKingPos(self, piece, endPos):
         if(piece.pieceType == Piece.KING):
-            self._state.kingPos[piece.color] = endPos
+            self._state.kingMoved[piece.color] = True
+        elif(piece.pieceType == Piece.CASTLE):
+            if(startPos == (7, 0)):
+                self._state.castle1Moved[piece.color] = True
+            elif(startPos == (7, 7)):
+                self._state.castle2Moved[piece.color] = True
+
+    def _kingPos(self, color):
+        for row in range(self._boardHeight):
+            for col in range(self._boardWidth):
+                piece = self._state.chessBoard[row][col]
+                if(piece != None and
+                    piece.pieceType == Piece.KING and
+                    piece.color == color):
+                    return (row, col)
 
     def _promotePawnColored(self, color, row):
         for col in range(self._boardWidth):
@@ -125,24 +119,36 @@ class ChessRules():
         self._promotePawnColored(Color.WHITE, whiteUpgradeRow)
         self._promotePawnColored(Color.BLACK, blackUpgradeRow)
 
+    def _moveCastledPieces(self, row, direction):
+        if(direction < 0):
+            startCol, endCol = 0, 3
+        else:
+            startCol, endCol = 7, 5
+        piece = self._state.chessBoard[row][startCol]
+        self._state.chessBoard[row][startCol] = None
+        self._state.chessBoard[row][endCol] = piece
+
     def movePiece(self, startPos, endPos):
+        isCastling = self._validKingCastleMove(startPos, endPos)
         piece = self._state.chessBoard[startPos[0]][startPos[1]]
         if(self._isCheckAfterMove(piece.color, startPos, endPos)):
             return
         self._state.chessBoard[startPos[0]][startPos[1]] = None
         self._state.chessBoard[endPos[0]][endPos[1]] = piece
-        self._updateKingPos(piece, endPos)
         self._setPiecesMoved(piece, startPos)
         self._promotePawnIfEighthRank()
+        if(isCastling):
+            direction = numpy.sign(endPos[1] - startPos[1])
+            row = startPos[0]
+            self._moveCastledPieces(row, direction)
         self._switchTurn()
 
-    def validMove(self, startPos, endPos):
+    def _basicValidMove(self, startPos, endPos):
         if(startPos[0] >= self._boardHeight or startPos[0] < 0 or
             startPos[1] >= self._boardWidth or startPos[1] < 0 or
             endPos[0] >= self._boardHeight or endPos[0] < 0 or
             endPos[1] >= self._boardWidth or endPos[1] < 0):
             return False
-
         startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
         endPiece = self._state.chessBoard[endPos[0]][endPos[1]]
         if(startPos == endPos or
@@ -150,6 +156,19 @@ class ChessRules():
             startPiece.color != self._state.turn or
             (endPiece != None and startPiece.color == endPiece.color)):
             return False
+
+        return True
+
+    def validMove(self, startPos, endPos):
+        return (self._validMovement(startPos, endPos) or
+            self._validKingCastleMove(startPos, endPos))
+
+    def _validMovement(self, startPos, endPos):
+        if(not self._basicValidMove(startPos, endPos)):
+            return False
+
+        startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
+        endPiece = self._state.chessBoard[endPos[0]][endPos[1]]
 
         if(startPiece.pieceType == Piece.PAWN):
             return self._validPawnMove(startPos, endPos)
@@ -172,13 +191,12 @@ class ChessRules():
         endPiece = self._state.chessBoard[endPos[0]][endPos[1]]
         startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
         self._state.chessBoard[endPos[0]][endPos[1]] = startPiece
-        self._updateKingPos(startPiece, endPos)
+        self._state.chessBoard[startPos[0]][startPos[1]] = None
 
         isCheckAfterMove = self.isCheck(color)
 
         # Restore the original state.
         self._loadBoard(tempBoard)
-        self._updateKingPos(startPiece, startPos)
 
         return isCheckAfterMove
 
@@ -288,12 +306,45 @@ class ChessRules():
         return True
 
     def _validKingMove(self, startPos, endPos):
+        startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
         dx = endPos[0] - startPos[0]
         dy = endPos[1] - startPos[1]
         if(abs(dx) > 1 or abs(dy) > 1):
             return False
 
-        # TODO: Allow the special castling move.
+        return True
+
+    def _validKingCastleMove(self, startPos, endPos):
+        if(not self._basicValidMove(startPos, endPos)):
+            return False
+        startPiece = self._state.chessBoard[startPos[0]][startPos[1]]
+        color = startPiece.color
+        dx = endPos[0] - startPos[0]
+        dy = endPos[1] - startPos[1]
+        kingMoved = self._state.kingMoved[color]
+        castle1Moved = self._state.castle1Moved[color]
+        castle2Moved = self._state.castle2Moved[color]
+        castleMoved = castle1Moved if dy < 0 else castle2Moved
+
+        if(startPiece.pieceType != Piece.KING or
+            kingMoved or castleMoved or
+            abs(dy) != 2 or dx != 0):
+            return False
+
+        # Check mid pieces. Any piece between castle and king is invalid.
+        row = startPos[0]
+        midColIndexes = range(5, 6) if dy > 0 else range(1, 3)
+        for col in midColIndexes:
+            if(self._state.chessBoard[row][col] != None):
+                return False
+
+        # Determine if the king will be in check at any point through the move.
+        direction = numpy.sign(dy)
+        midPos = (startPos[0], startPos[1] + direction)
+        if(self.isCheck(color) or
+            self._isCheckAfterMove(color, startPos, midPos) or
+            self._isCheckAfterMove(color, startPos, endPos)):
+            return False
 
         return True
 
@@ -308,7 +359,7 @@ class ChessRules():
             self._validCastleMovement(dx, dy))
 
     def isCheck(self, color):
-        kingPos = self._state.kingPos[color]
+        kingPos = self._kingPos(color)
         isCheck = False
         tempTurn = self._state.turn
         if(self._state.turn == color):
@@ -359,7 +410,7 @@ class ChessBoard():
             _pieces.WHITE_PAWN, _pieces.WHITE_PAWN],
         [_pieces.WHITE_CASTLE, _pieces.WHITE_KNIGHT, _pieces.WHITE_BISHOP,
             _pieces.WHITE_QUEEN, _pieces.WHITE_KING, _pieces.WHITE_BISHOP,
-            _pieces.WHITE_KNIGHT, _pieces.WHITE_CASTLE],
+            _pieces.WHITE_KNIGHT, _pieces.WHITE_CASTLE]
     ]
     _rules = ChessRules(_chessBoard, _pieces)
 
