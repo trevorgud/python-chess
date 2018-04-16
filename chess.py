@@ -3,7 +3,14 @@
 from enum import Enum
 import math
 import numpy
+import os
 import pygame
+import sys
+
+def resource_path(relative):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative)
+    return os.path.join(relative)
 
 
 class Color(Enum):
@@ -423,18 +430,18 @@ class ChessBoard():
     _whiteDir = _pieceDir + "/default-white"
     _blackDir = _pieceDir + "/default-black"
     images = {
-        _pieces.WHITE_PAWN: pygame.image.load(_whiteDir + "/pawn.png"),
-        _pieces.WHITE_KNIGHT: pygame.image.load(_whiteDir + "/knight.png"),
-        _pieces.WHITE_BISHOP: pygame.image.load(_whiteDir + "/bishop.png"),
-        _pieces.WHITE_CASTLE: pygame.image.load(_whiteDir + "/castle.png"),
-        _pieces.WHITE_QUEEN: pygame.image.load(_whiteDir + "/queen.png"),
-        _pieces.WHITE_KING: pygame.image.load(_whiteDir + "/king.png"),
-        _pieces.BLACK_PAWN: pygame.image.load(_blackDir + "/pawn.png"),
-        _pieces.BLACK_KNIGHT: pygame.image.load(_blackDir + "/knight.png"),
-        _pieces.BLACK_BISHOP: pygame.image.load(_blackDir + "/bishop.png"),
-        _pieces.BLACK_CASTLE: pygame.image.load(_blackDir + "/castle.png"),
-        _pieces.BLACK_QUEEN: pygame.image.load(_blackDir + "/queen.png"),
-        _pieces.BLACK_KING: pygame.image.load(_blackDir + "/king.png")
+        _pieces.WHITE_PAWN: pygame.image.load(resource_path(_whiteDir + "/pawn.png")),
+        _pieces.WHITE_KNIGHT: pygame.image.load(resource_path(_whiteDir + "/knight.png")),
+        _pieces.WHITE_BISHOP: pygame.image.load(resource_path(_whiteDir + "/bishop.png")),
+        _pieces.WHITE_CASTLE: pygame.image.load(resource_path(_whiteDir + "/castle.png")),
+        _pieces.WHITE_QUEEN: pygame.image.load(resource_path(_whiteDir + "/queen.png")),
+        _pieces.WHITE_KING: pygame.image.load(resource_path(_whiteDir + "/king.png")),
+        _pieces.BLACK_PAWN: pygame.image.load(resource_path(_blackDir + "/pawn.png")),
+        _pieces.BLACK_KNIGHT: pygame.image.load(resource_path(_blackDir + "/knight.png")),
+        _pieces.BLACK_BISHOP: pygame.image.load(resource_path(_blackDir + "/bishop.png")),
+        _pieces.BLACK_CASTLE: pygame.image.load(resource_path(_blackDir + "/castle.png")),
+        _pieces.BLACK_QUEEN: pygame.image.load(resource_path(_blackDir + "/queen.png")),
+        _pieces.BLACK_KING: pygame.image.load(resource_path(_blackDir + "/king.png"))
     }
 
     def validMove(self, startPos, endPos):
@@ -508,7 +515,7 @@ chessBoard = ChessBoard()
 pygame.init()
 pygame.display.set_caption("python-chess")
 screen = pygame.display.set_mode((440, 440))
-board = pygame.image.load("images/boards/black-white.png")
+board = pygame.image.load(resource_path("images/boards/black-white.png"))
 boardRect = board.get_rect()
 
 currentMouseSelect = None
