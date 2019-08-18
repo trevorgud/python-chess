@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 from enum import Enum
+from tkinter import *
+import datetime
 import math
 import numpy
 import os
 import pygame
+import tkinter as tk
 import sys
 
 def resource_path(relative):
@@ -510,10 +513,46 @@ def pygameToBoardIndex(screenPos):
     return (xnew, ynew)
 
 
+class ActionLog:
+    def __init__(self, time, msg):
+        self.time = time
+        self.msg = msg
+
+    def __str__(self):
+        return self.time.strftime("%H:%M:%S") + " " + self.msg
+
+class TkLogList:
+    def __init__(self, elem, logs):
+        self.elem = elem
+        self.logs = logs
+        self.frame = tk.Frame(self.elem, width = 256)
+
+    def pack(self, num = 3):
+        self.frame.pack()
+        for log in reversed(self.logs[-num:]):
+            msg = tk.Message(self.frame, text = str(log))
+            msg.config(width = 256, anchor = NW, justify = LEFT)
+            msg.pack(fill = X)
+
+    def destroy(self):
+        self.frame.destroy()
+
+
+appTitle = "python-chess"
 chessBoard = ChessBoard()
 
+logs = [ActionLog(time = datetime.datetime.now(), msg = "Starting...")]
+
+root = tk.Tk()
+root.title(appTitle)
+
+tkLogList = TkLogList(elem = root, logs = logs)
+tkLogList.pack()
+
+root.update()
+
 pygame.init()
-pygame.display.set_caption("python-chess")
+pygame.display.set_caption(appTitle)
 screen = pygame.display.set_mode((440, 440))
 board = pygame.image.load(resource_path("images/boards/black-white.png"))
 boardRect = board.get_rect()
@@ -521,6 +560,7 @@ boardRect = board.get_rect()
 currentMouseSelect = None
 running = True
 while running:
+    root.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -533,10 +573,18 @@ while running:
                 newMouseSelect = pygame.mouse.get_pos()
                 startBoardIndex = pygameToBoardIndex(currentMouseSelect)
                 endBoardIndex = pygameToBoardIndex(newMouseSelect)
-                print(startBoardIndex, endBoardIndex)
+                moveStr = str(startBoardIndex) + " to " + str(endBoardIndex)
+                time = datetime.datetime.now()
                 if(chessBoard.validMove(startBoardIndex, endBoardIndex)):
                     chessBoard.movePiece(startBoardIndex, endBoardIndex)
+                    logs.append(ActionLog(time, "Moved: " + moveStr))
+                else:
+                    logs.append(ActionLog(time, "Invalid move: " + moveStr))
                 currentMouseSelect = None
+                tkLogList.destroy()
+                tkLogList = TkLogList(elem = root, logs = logs)
+                tkLogList.pack()
+
 
         screen.blit(board, boardRect)
         chessBoard.pygameBlit(screen)
