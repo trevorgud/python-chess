@@ -1,5 +1,7 @@
 # -*- mode: python -*-
 
+# TODO: Get single file build working again.
+
 block_cipher = None
 a = Analysis(['chess.py'],
              pathex=['.'],

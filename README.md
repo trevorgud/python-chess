@@ -2,7 +2,7 @@ To install dependencies and run the game:
 
 ```
 apt-get install python3 python3-pip python3-tk
-python3 -m pip install -U numpy pygame
+python3 -m pip install -U pygame
 ./chess.py
 ```
 
