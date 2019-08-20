@@ -31,3 +31,18 @@ def pygameToBoardIndex(screenPos):
     xnew = math.floor((screenPos[1] - 20) / 50)
     ynew = math.floor((screenPos[0] - 20) / 50)
     return (xnew, ynew)
+
+def pygameToBoardRect(screenPos):
+    # Board index is inverted from pygame index.
+    y, x = pygameToBoardIndex(screenPos)
+    xScreen = x * 50 + 20
+    yScreen = y * 50 + 20
+    width = 50
+    height = 50
+    return (xScreen, yScreen, width, height)
+
+def isWithinBound(pos, bound):
+    x, y = pos
+    xBound, yBound, width, height = bound
+    return (x >= xBound and y >= yBound and
+        x <= xBound + width and y <= yBound + width)
