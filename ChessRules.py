@@ -1,3 +1,5 @@
+import numpy
+
 from ChessState import ChessState
 from Color import Color
 from Piece import Piece
