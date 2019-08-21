@@ -2,17 +2,44 @@
 
 import datetime
 import pygame
+import socket
 import tkinter as tk
 
 from ActionLog import ActionLog
 from ChessBoard import ChessBoard
-from ChessRules import ChessRules
-from Color import Color
-from Piece import Piece
-from PieceSet import PieceSet
 from TkLogList import TkLogList
 from utils import *
 
+
+# If command line arguments found, try to set up multiplayer socket connection.
+if len(sys.argv) > 1:
+  if sys.argv[1] == "server":
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("localhost", 9992))
+    sock.listen(1)
+    print("Waiting for connection...")
+    connection, clientAddr = sock.accept()
+    print("Connection accepted from", clientAddr)
+    print("Sending test data...")
+    message = "Test sending some data from server side."
+    connection.sendall(message.encode("utf-8"))
+    print("Closing connection.")
+    connection.close()
+
+  elif sys.argv[1] == "client" and len(sys.argv) > 2:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serverAddr = (sys.argv[2], 9992)
+    print('Connecting to server at ', serverAddr)
+    sock.connect(serverAddr)
+    data = sock.recv(256000)
+    print("Test data received:", data.decode("utf-8"))
+    print("Closing connection.")
+    sock.close()
+
+  exit()
+
+
+# If no command line arguments, assume local game.
 appTitle = "python-chess"
 chessBoard = ChessBoard()
 
@@ -73,6 +100,7 @@ while running:
 
     # Flip the display buffer and show all blitted changes.
     pygame.display.flip()
+
 
 # TODO: Allow selection between command line and GUI chess modes.
 # while(True):
