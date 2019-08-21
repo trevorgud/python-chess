@@ -99,8 +99,11 @@ class ChessRules():
     return True
 
   def validMove(self, startPos, endPos):
-    return (self._validMovement(startPos, endPos) or
-      self._validKingCastleMove(startPos, endPos))
+    return (
+      (self._validMovement(startPos, endPos) or
+        self._validKingCastleMove(startPos, endPos)) and not
+        self._isCheckAfterMove(self._state.turn, startPos, endPos)
+    )
 
   def _validMovement(self, startPos, endPos):
     if(not self._basicValidMove(startPos, endPos)):
