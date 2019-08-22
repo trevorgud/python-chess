@@ -3,13 +3,13 @@ import numpy
 from ChessState import ChessState
 from Color import Color
 from Piece import Piece
+from Pieces import Pieces
 
 class ChessRules():
-  def __init__(self, chessBoard, pieces):
+  def __init__(self, chessBoard):
     self._boardWidth = 8
     self._boardHeight = 8
     self._state = ChessState(chessBoard)
-    self._pieces = pieces
 
   def _getPiece(self, pos):
     return self._state.chessBoard[pos[0]][pos[1]]
@@ -48,9 +48,9 @@ class ChessRules():
         piece.color == color and
         piece.pieceType == Piece.PAWN):
         if(color == Color.WHITE):
-          self._state.chessBoard[row][col] = self._pieces.WHITE_QUEEN
+          self._state.chessBoard[row][col] = Pieces.WHITE_QUEEN
         else:
-          self._state.chessBoard[row][col] = self._pieces.BLACK_QUEEN
+          self._state.chessBoard[row][col] = Pieces.BLACK_QUEEN
 
   def _promotePawnIfEighthRank(self):
     whiteUpgradeRow = 0

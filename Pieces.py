@@ -1,7 +1,9 @@
+from enum import Enum
+
 from Color import Color
 from Piece import Piece
 
-class ChessPiece():
+class Pieces(Enum):
   def __init__(self, pieceType, color):
     self.pieceType = pieceType
     self.color = color
@@ -26,3 +28,16 @@ class ChessPiece():
       pieceStr = "K"
 
     return colorStr + pieceStr
+
+  WHITE_PAWN = Piece.PAWN, Color.WHITE
+  WHITE_KNIGHT = Piece.KNIGHT, Color.WHITE
+  WHITE_BISHOP = Piece.BISHOP, Color.WHITE
+  WHITE_CASTLE = Piece.CASTLE, Color.WHITE
+  WHITE_QUEEN = Piece.QUEEN, Color.WHITE
+  WHITE_KING = Piece.KING, Color.WHITE
+  BLACK_PAWN = Piece.PAWN, Color.BLACK
+  BLACK_KNIGHT = Piece.KNIGHT, Color.BLACK
+  BLACK_BISHOP = Piece.BISHOP, Color.BLACK
+  BLACK_CASTLE = Piece.CASTLE, Color.BLACK
+  BLACK_QUEEN = Piece.QUEEN, Color.BLACK
+  BLACK_KING = Piece.KING, Color.BLACK

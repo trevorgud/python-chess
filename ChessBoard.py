@@ -1,47 +1,46 @@
 import pygame
 
 from ChessRules import ChessRules
-from PieceSet import PieceSet
+from Pieces import Pieces
 from utils import resourcePath
 
 class ChessBoard():
-  _pieces = PieceSet()
   _chessBoard = [
-    [_pieces.BLACK_CASTLE, _pieces.BLACK_KNIGHT, _pieces.BLACK_BISHOP,
-      _pieces.BLACK_QUEEN, _pieces.BLACK_KING, _pieces.BLACK_BISHOP,
-      _pieces.BLACK_KNIGHT, _pieces.BLACK_CASTLE],
-    [_pieces.BLACK_PAWN, _pieces.BLACK_PAWN, _pieces.BLACK_PAWN,
-      _pieces.BLACK_PAWN, _pieces.BLACK_PAWN, _pieces.BLACK_PAWN,
-      _pieces.BLACK_PAWN, _pieces.BLACK_PAWN],
+    [Pieces.BLACK_CASTLE, Pieces.BLACK_KNIGHT, Pieces.BLACK_BISHOP,
+      Pieces.BLACK_QUEEN, Pieces.BLACK_KING, Pieces.BLACK_BISHOP,
+      Pieces.BLACK_KNIGHT, Pieces.BLACK_CASTLE],
+    [Pieces.BLACK_PAWN, Pieces.BLACK_PAWN, Pieces.BLACK_PAWN,
+      Pieces.BLACK_PAWN, Pieces.BLACK_PAWN, Pieces.BLACK_PAWN,
+      Pieces.BLACK_PAWN, Pieces.BLACK_PAWN],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None, None],
-    [_pieces.WHITE_PAWN, _pieces.WHITE_PAWN, _pieces.WHITE_PAWN,
-      _pieces.WHITE_PAWN, _pieces.WHITE_PAWN, _pieces.WHITE_PAWN,
-      _pieces.WHITE_PAWN, _pieces.WHITE_PAWN],
-    [_pieces.WHITE_CASTLE, _pieces.WHITE_KNIGHT, _pieces.WHITE_BISHOP,
-      _pieces.WHITE_QUEEN, _pieces.WHITE_KING, _pieces.WHITE_BISHOP,
-      _pieces.WHITE_KNIGHT, _pieces.WHITE_CASTLE]
+    [Pieces.WHITE_PAWN, Pieces.WHITE_PAWN, Pieces.WHITE_PAWN,
+      Pieces.WHITE_PAWN, Pieces.WHITE_PAWN, Pieces.WHITE_PAWN,
+      Pieces.WHITE_PAWN, Pieces.WHITE_PAWN],
+    [Pieces.WHITE_CASTLE, Pieces.WHITE_KNIGHT, Pieces.WHITE_BISHOP,
+      Pieces.WHITE_QUEEN, Pieces.WHITE_KING, Pieces.WHITE_BISHOP,
+      Pieces.WHITE_KNIGHT, Pieces.WHITE_CASTLE]
   ]
-  _rules = ChessRules(_chessBoard, _pieces)
+  _rules = ChessRules(_chessBoard)
 
   _pieceDir = "images/pieces"
   _whiteDir = _pieceDir + "/default-white"
   _blackDir = _pieceDir + "/default-black"
-  images = {
-    _pieces.WHITE_PAWN: pygame.image.load(resourcePath(_whiteDir + "/pawn.png")),
-    _pieces.WHITE_KNIGHT: pygame.image.load(resourcePath(_whiteDir + "/knight.png")),
-    _pieces.WHITE_BISHOP: pygame.image.load(resourcePath(_whiteDir + "/bishop.png")),
-    _pieces.WHITE_CASTLE: pygame.image.load(resourcePath(_whiteDir + "/castle.png")),
-    _pieces.WHITE_QUEEN: pygame.image.load(resourcePath(_whiteDir + "/queen.png")),
-    _pieces.WHITE_KING: pygame.image.load(resourcePath(_whiteDir + "/king.png")),
-    _pieces.BLACK_PAWN: pygame.image.load(resourcePath(_blackDir + "/pawn.png")),
-    _pieces.BLACK_KNIGHT: pygame.image.load(resourcePath(_blackDir + "/knight.png")),
-    _pieces.BLACK_BISHOP: pygame.image.load(resourcePath(_blackDir + "/bishop.png")),
-    _pieces.BLACK_CASTLE: pygame.image.load(resourcePath(_blackDir + "/castle.png")),
-    _pieces.BLACK_QUEEN: pygame.image.load(resourcePath(_blackDir + "/queen.png")),
-    _pieces.BLACK_KING: pygame.image.load(resourcePath(_blackDir + "/king.png"))
+  _images = {
+    Pieces.WHITE_PAWN: pygame.image.load(resourcePath(_whiteDir + "/pawn.png")),
+    Pieces.WHITE_KNIGHT: pygame.image.load(resourcePath(_whiteDir + "/knight.png")),
+    Pieces.WHITE_BISHOP: pygame.image.load(resourcePath(_whiteDir + "/bishop.png")),
+    Pieces.WHITE_CASTLE: pygame.image.load(resourcePath(_whiteDir + "/castle.png")),
+    Pieces.WHITE_QUEEN: pygame.image.load(resourcePath(_whiteDir + "/queen.png")),
+    Pieces.WHITE_KING: pygame.image.load(resourcePath(_whiteDir + "/king.png")),
+    Pieces.BLACK_PAWN: pygame.image.load(resourcePath(_blackDir + "/pawn.png")),
+    Pieces.BLACK_KNIGHT: pygame.image.load(resourcePath(_blackDir + "/knight.png")),
+    Pieces.BLACK_BISHOP: pygame.image.load(resourcePath(_blackDir + "/bishop.png")),
+    Pieces.BLACK_CASTLE: pygame.image.load(resourcePath(_blackDir + "/castle.png")),
+    Pieces.BLACK_QUEEN: pygame.image.load(resourcePath(_blackDir + "/queen.png")),
+    Pieces.BLACK_KING: pygame.image.load(resourcePath(_blackDir + "/king.png"))
   }
 
   def validMove(self, startPos, endPos):
@@ -76,7 +75,7 @@ class ChessBoard():
       for piece in row:
         if(piece is not None):
           (dx, dy) = self.boardToPygameIndex(rowIndex, columnIndex)
-          pieceImage = self.images[piece]
+          pieceImage = self._images[piece]
           pieceRect = pieceImage.get_rect().move(dx, dy)
           screen.blit(pieceImage, pieceRect)
         columnIndex += 1
