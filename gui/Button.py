@@ -2,7 +2,7 @@ import pygame
 
 from utils import rectOffset
 
-class PygameButton():
+class Button():
   def __init__(self, text, rect, handler, color = (128, 128, 128)):
     self.text = text
     self.rect = rect

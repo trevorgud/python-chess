@@ -2,7 +2,7 @@ import pygame
 
 from utils import rectOffset
 
-class PygameBanner():
+class Banner():
   def __init__(self, text, topPad = 0, color = (0, 0, 0)):
     self.text = text
     self.topPad = topPad

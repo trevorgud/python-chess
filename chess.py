@@ -7,8 +7,8 @@ import time
 
 from ChessBoard import ChessBoard
 from MoveStatus import MoveStatus
-from PygameBanner import PygameBanner
-from PygameButton import PygameButton
+from gui import Banner
+from gui import Button
 from utils import *
 
 
@@ -65,7 +65,7 @@ screen.blit(backImg, backRect)
 bannerFile = open("banner.txt", "r")
 bannerText = bannerFile.read()
 bannerCenter = backRect.center
-banner = PygameBanner(bannerText)
+banner = Banner(bannerText)
 banner.blit(screen)
 
 startRect = pygame.Rect(0, 0, 80, 20)
@@ -74,7 +74,7 @@ menuSelect = True
 def stopMenuSelect():
   global menuSelect
   menuSelect = False
-startButton = PygameButton("Start!", startRect, stopMenuSelect, None)
+startButton = Button("Start!", startRect, stopMenuSelect, None)
 startButton.blit(screen)
 
 pygame.display.flip()
