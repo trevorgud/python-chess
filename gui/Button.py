@@ -29,5 +29,5 @@ class Button():
     screen.blit(textSurface, textRect)
 
   def handle(self, event, pos):
-    if(event.type == pygame.MOUSEBUTTONUP and self.rect.collidepoint(pos)):
+    if event.type == pygame.MOUSEBUTTONUP and self.rect.collidepoint(pos):
       self.handler()

@@ -7,8 +7,7 @@ import time
 
 from ChessBoard import ChessBoard
 from MoveStatus import MoveStatus
-from gui import Banner
-from gui import Button
+from gui import Banner, Button, Text, TextInput
 from utils import *
 
 
@@ -50,43 +49,91 @@ def receiveRemoteMove(connection, board):
     connection.sendall(response)
 
 
+def initConnection():
+  global multiplayer, connection, clientSide, textInput
+  multiplayer = True
+  if len(textInput.text) == 0:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("localhost", 9992))
+    sock.listen(1)
+    print("Waiting for connection...")
+    connection, clientAddr = sock.accept()
+    print("Connection accepted from", clientAddr)
+  else:
+    clientSide = True
+    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serverAddr = (textInput.text, 9992)
+    print("Connecting to server at ", serverAddr)
+    connection.connect(serverAddr)
+    print("Connected to", serverAddr)
+
+
 appTitle = "python-chess"
 chessBoard = ChessBoard()
+multiplayer = False
+clientSide = False
+connection = None
 
 pygame.init()
 pygame.display.set_caption(appTitle)
+pygame.key.set_repeat(500, 25)
 
 backImg = pygame.image.load(resourcePath("images/backgrounds/1.jpeg"))
 backRect = backImg.get_rect()
 screen = pygame.display.set_mode((backRect.width, backRect.height))
-screen.blit(backImg, backRect)
-
 
 bannerFile = open("banner.txt", "r")
 bannerText = bannerFile.read()
 bannerCenter = backRect.center
 banner = Banner(bannerText)
-banner.blit(screen)
 
-startRect = pygame.Rect(0, 0, 80, 20)
-startRect.center = backRect.center
 menuSelect = True
-def stopMenuSelect():
+
+localRect = pygame.Rect(0, 0, 80, 20)
+localRect.center = backRect.center
+def localSelect():
   global menuSelect
   menuSelect = False
-startButton = Button("Start!", startRect, stopMenuSelect, None)
-startButton.blit(screen)
+localButton = Button("Local", localRect, localSelect, None)
 
-pygame.display.flip()
+inputRect = localRect.copy()
+inputRect.width += 75
+inputRect.center = localRect.center
+inputRect.top += 25
+textInput = TextInput(inputRect, 15)
+labelRect = inputRect.copy()
+labelRect.left -= 50
+labelRect.width = 25
+inputLabel = Text("Host IP:", labelRect.center)
 
+connRect = localRect.copy()
+connRect.center = backRect.center
+connRect.left -= 85
+def connSelect():
+  global menuSelect
+  menuSelect = False
+  initConnection()
+connButton = Button("Online", connRect, connSelect, None)
+
+aiRect = localRect.copy()
+aiRect.center = backRect.center
+aiRect.left += 85
+aiButton = Button("AI", aiRect, lambda: None, None)
+
+displayElems = [banner, inputLabel]
+guiElems = [textInput, localButton, connButton, aiButton]
 
 while menuSelect:
-  time.sleep(0.1)
+  time.sleep(0.01)
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       exit()
-    startButton.handle(event, pygame.mouse.get_pos())
-
+    for elem in guiElems:
+      elem.handle(event, pygame.mouse.get_pos())
+    screen.blit(backImg, backRect)
+    for elem in displayElems + guiElems:
+      elem.blit(screen)
+    pygame.display.flip()
 
 boardImg = pygame.image.load(resourcePath("images/boards/black-white.png"))
 boardRect = boardImg.get_rect()
@@ -96,34 +143,9 @@ innerRect = pygame.Rect(0, 0, boardRect.width - edges, boardRect.height - edges)
 innerRect.center = boardRect.center
 updateDisplay(screen, boardImg, boardRect, chessBoard)
 
-
-multiplayer = False
-clientSide = False
-
-# If command line arguments found, try to set up multiplayer socket connection.
-if len(sys.argv) > 1:
-  multiplayer = True
-
-  if sys.argv[1] == "server":
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("localhost", 9992))
-    sock.listen(1)
-    print("Waiting for connection...")
-    connection, clientAddr = sock.accept()
-    print("Connection accepted from", clientAddr)
-
-  elif sys.argv[1] == "client" and len(sys.argv) > 2:
-    clientSide = True
-    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serverAddr = (sys.argv[2], 9992)
-    print("Connecting to server at ", serverAddr)
-    connection.connect(serverAddr)
-    print("Connected to", serverAddr)
-
 if clientSide:
   receiveRemoteMove(connection, chessBoard)
   updateDisplay(screen, boardImg, boardRect, chessBoard)
-
 
 currentClick = None
 running = True
