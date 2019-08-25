@@ -40,9 +40,3 @@ def pygameToBoardRect(screenPos):
   width = 50
   height = 50
   return (xScreen, yScreen, width, height)
-
-def isWithinBound(pos, bound):
-  x, y = pos
-  xBound, yBound, width, height = bound
-  return (x >= xBound and y >= yBound and
-    x <= xBound + width and y <= yBound + width)

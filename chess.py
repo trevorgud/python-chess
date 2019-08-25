@@ -3,9 +3,11 @@
 import jsonpickle
 import pygame
 import socket
+import time
 
 from ChessBoard import ChessBoard
 from MoveStatus import MoveStatus
+from PygameButton import PygameButton
 from utils import *
 
 
@@ -52,11 +54,40 @@ chessBoard = ChessBoard()
 
 pygame.init()
 pygame.display.set_caption(appTitle)
-screen = pygame.display.set_mode((440, 440))
+
+backImg = pygame.image.load(resourcePath("images/backgrounds/1.jpeg"))
+backRect = backImg.get_rect()
+screen = pygame.display.set_mode((backRect.width, backRect.height))
+screen.blit(backImg, backRect)
+
+startRect = pygame.Rect(0, 0, 80, 20)
+startRect.center = backRect.center
+menuSelect = True
+def stopMenuSelect():
+  global menuSelect
+  menuSelect = False
+startButton = PygameButton("Start!", startRect, stopMenuSelect)
+startButton.blit(screen)
+
+pygame.display.flip()
+
+
+while menuSelect:
+  time.sleep(0.1)
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      exit()
+    startButton.handle(event, pygame.mouse.get_pos())
+
+
 boardImg = pygame.image.load(resourcePath("images/boards/black-white.png"))
 boardRect = boardImg.get_rect()
-innerRect = (20, 20, 8 * 50, 8 * 50)
+screen = pygame.display.set_mode((boardRect.width, boardRect.height))
+edges = 40
+innerRect = pygame.Rect(0, 0, boardRect.width - edges, boardRect.height - edges)
+innerRect.center = boardRect.center
 updateDisplay(screen, boardImg, boardRect, chessBoard)
+
 
 multiplayer = False
 clientSide = False
@@ -85,16 +116,18 @@ if clientSide:
   receiveRemoteMove(connection, chessBoard)
   updateDisplay(screen, boardImg, boardRect, chessBoard)
 
+
 currentClick = None
 running = True
 while running:
+  time.sleep(0.01)
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       running = False
     if event.type == pygame.MOUSEBUTTONUP:
       mousePos = pygame.mouse.get_pos()
       if currentClick is None:
-        if isWithinBound(mousePos, innerRect):
+        if innerRect.collidepoint(mousePos):
           currentClick = mousePos
       else:
         startBoardIndex = pygameToBoardIndex(currentClick)
