@@ -40,3 +40,9 @@ def pygameToBoardRect(screenPos):
   width = 50
   height = 50
   return (xScreen, yScreen, width, height)
+
+def rectOffset(rect, off):
+  newRect = rect.copy()
+  newRect.left += off
+  newRect.top += off
+  return newRect
