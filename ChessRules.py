@@ -1,3 +1,4 @@
+from itertools import product
 import numpy
 
 from ChessState import ChessState
@@ -162,7 +163,7 @@ class ChessRules():
       endPiece != None and
       endPiece.color != startPiece.color):
       return True
-    elif(dx == 2 and dy == 0 and
+    elif(dx == 2 and dy == 0 and endPiece == None and
       ((startPiece.color == Color.WHITE and startPos[0] == 6) or
         (startPiece.color == Color.BLACK and startPos[0] == 1))):
       return True
@@ -215,7 +216,7 @@ class ChessRules():
 
     row, col = rowstart, colstart
     while(row != rowend or col != colend):
-      if(self._getPiece((row, pos)) != None):
+      if(self._getPiece((row, col)) != None):
         return False
       row += rowstep
       col += colstep
@@ -314,9 +315,16 @@ class ChessRules():
     self._state.turn = tempTurn
     return isCheck
 
-  def isCheckmate(self, color):
-    # TODO: Detect checkmate conditions.
-    return False
+  def isCheckmate(self):
+    allPositions = list(product(range(0, self._boardWidth), range(0, self._boardHeight)))
+    moves = list(product(allPositions, allPositions))
+    for startPos, endPos in moves:
+      print(startPos, endPos)
+      if self.validMove(startPos, endPos):
+        return False
+
+    # No valid moves found, return checkmate status as true.
+    return True
 
   def _boardCopy(self):
     newBoard = []
