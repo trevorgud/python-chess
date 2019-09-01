@@ -24,6 +24,11 @@ def updateDisplay(screen, img, rect, board, click = None):
     rgbBlack = (0, 0, 0)
     pygame.draw.rect(screen, rgbBlack, pgRect, 3)
 
+  rgbGrey = (153, 153, 153)
+  edge = 4
+  menuRect = pygame.Rect(edge, rect.height - edge, rect.width - (2 * edge), 50)
+  pygame.draw.rect(screen, rgbGrey, menuRect)
+
   # Flip the display buffer and show all blitted changes.
   pygame.display.flip()
 
@@ -137,7 +142,9 @@ while menuSelect:
 
 boardImg = pygame.image.load(resourcePath("images/boards/black-white.png"))
 boardRect = boardImg.get_rect()
-screen = pygame.display.set_mode((boardRect.width, boardRect.height))
+screenRect = boardRect.copy()
+screenRect.height += 50
+screen = pygame.display.set_mode((screenRect.width, screenRect.height))
 edges = 40
 innerRect = pygame.Rect(0, 0, boardRect.width - edges, boardRect.height - edges)
 innerRect.center = boardRect.center
