@@ -7,7 +7,7 @@ import time
 
 from ChessBoard import ChessBoard
 from MoveStatus import MoveStatus
-from gui import Banner, Button, Text, TextInput
+from gui import Banner, Button, CheckStatus, Text, TextInput, TurnText
 from utils import *
 
 
@@ -19,7 +19,7 @@ def updateDisplay(screen, img, rect, board, click = None):
   board.pygameBlit(screen)
 
   # Blit the current mouse select, if one is present.
-  if click is not None:
+  if click is not None and not board.isCheckmate():
     pgRect = pygameToBoardRect(click)
     rgbBlack = (0, 0, 0)
     pygame.draw.rect(screen, rgbBlack, pgRect, 3)
@@ -28,6 +28,14 @@ def updateDisplay(screen, img, rect, board, click = None):
   edge = 4
   menuRect = pygame.Rect(edge, rect.height - edge, rect.width - (2 * edge), 50)
   pygame.draw.rect(screen, rgbGrey, menuRect)
+
+  turnRect = pygame.Rect(16, menuRect.top, 80, 16)
+  turnText = TurnText(board.turn(), turnRect)
+  turnText.blit(screen)
+
+  checkRect = pygame.Rect(16, turnRect.top + turnRect.height, 80, 16)
+  checkStatus = CheckStatus(board.isCheck(), board.isCheckmate(), checkRect)
+  checkStatus.blit(screen)
 
   # Flip the display buffer and show all blitted changes.
   pygame.display.flip()

@@ -49,6 +49,15 @@ class ChessBoard():
   def movePiece(self, startPos, endPos):
     self._rules.movePiece(startPos, endPos)
 
+  def turn(self):
+    return self._rules.turn()
+
+  def isCheck(self):
+    return self._rules.isCheck()
+
+  def isCheckmate(self):
+    return self._rules.isCheckmate()
+
   def __str__(self):
     boardStr = ""
     rowIndex = 8

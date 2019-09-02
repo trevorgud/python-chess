@@ -12,6 +12,9 @@ class ChessRules():
     self._boardHeight = 8
     self._state = ChessState(chessBoard)
 
+  def turn(self):
+    return self._state.turn
+
   def _getPiece(self, pos):
     return self._state.chessBoard[pos[0]][pos[1]]
 
@@ -136,7 +139,7 @@ class ChessRules():
     self._setPiece(endPos, startPiece)
     self._setPiece(startPos, None)
 
-    isCheckAfterMove = self.isCheck(color)
+    isCheckAfterMove = self.isCheck()
 
     # Restore the original state.
     self._loadBoard(tempBoard)
@@ -283,7 +286,7 @@ class ChessRules():
     # Determine if the king will be in check at any point through the move.
     direction = numpy.sign(dy)
     midPos = (startPos[0], startPos[1] + direction)
-    if(self.isCheck(color) or
+    if(self.isCheck() or
       self._isCheckAfterMove(color, startPos, midPos) or
       self._isCheckAfterMove(color, startPos, endPos)):
       return False
@@ -300,7 +303,8 @@ class ChessRules():
     return (self._validBishopMovement(dx, dy) or
       self._validCastleMovement(dx, dy))
 
-  def isCheck(self, color):
+  def isCheck(self):
+    color = self._state.turn
     kingPos = self._kingPos(color)
     isCheck = False
     tempTurn = self._state.turn
@@ -319,7 +323,6 @@ class ChessRules():
     allPositions = list(product(range(0, self._boardWidth), range(0, self._boardHeight)))
     moves = list(product(allPositions, allPositions))
     for startPos, endPos in moves:
-      print(startPos, endPos)
       if self.validMove(startPos, endPos):
         return False
 
